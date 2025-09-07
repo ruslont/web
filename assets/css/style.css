@@ -1,0 +1,567 @@
+/* Asosiy stillar */
+:root {
+    --primary-color: #c8a97e;
+    --secondary-color: #2c2c2c;
+    --accent-color: #d4af37;
+    --light-color: #f8f5f0;
+    --dark-color: #1a1a1a;
+    --font-main: 'Playfair Display', serif;
+    --font-secondary: 'Lato', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-secondary);
+    color: var(--dark-color);
+    line-height: 1.6;
+    background-color: var(--light-color);
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Sarlavha stillari */
+header {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.logo h1 {
+    font-family: var(--font-main);
+    color: var(--primary-color);
+    font-size: 28px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: var(--dark-color);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: var(--primary-color);
+}
+
+.cart-link {
+    display: flex;
+    align-items: center;
+}
+
+.auth-buttons .btn {
+    margin-left: 10px;
+}
+
+/* Tugmalar */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: var(--font-secondary);
+    font-weight: 500;
+}
+
+.btn:hover {
+    background-color: #b5986b;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+}
+
+.btn-primary:hover {
+    background-color: #c19b2e;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Hero bo'limi */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/hero-bg.jpg') no-repeat center center/cover;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: white;
+    margin-top: 80px;
+}
+
+.hero h1 {
+    font-family: var(--font-main);
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 20px;
+    margin-bottom: 30px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Afzalliklar bo'limi */
+.features {
+    padding: 80px 0;
+    background-color: white;
+}
+
+.features .container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.feature {
+    text-align: center;
+    width: 300px;
+    margin: 20px;
+}
+
+.feature-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.feature h3 {
+    font-family: var(--font-main);
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+/* Mahsulotlar katologi */
+.featured-products {
+    padding: 80px 0;
+    background-color: var(--light-color);
+}
+
+.featured-products h2 {
+    text-align: center;
+    font-family: var(--font-main);
+    font-size: 36px;
+    margin-bottom: 50px;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.product-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-card h3 {
+    padding: 15px;
+    font-size: 18px;
+}
+
+.product-card .price {
+    padding: 0 15px;
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+.product-card .btn {
+    margin: 15px;
+}
+
+/* Kategoriyalar bo'limi */
+.categories {
+    padding: 80px 0;
+    background-color: white;
+}
+
+.categories h2 {
+    text-align: center;
+    font-family: var(--font-main);
+    font-size: 36px;
+    margin-bottom: 50px;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.category-card {
+    background-color: var(--light-color);
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.category-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.category-card h3 {
+    font-family: var(--font-main);
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.category-card p {
+    margin-bottom: 20px;
+}
+
+/* Footer */
+footer {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 60px 0 0;
+}
+
+footer .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.footer-section h3 {
+    font-family: var(--font-main);
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+.footer-section p {
+    margin-bottom: 10px;
+}
+
+.payment-methods, .social-links {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-methods span, .social-links a {
+    margin-bottom: 10px;
+    color: white;
+    text-decoration: none;
+}
+
+.copyright {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Savat sahifasi */
+.cart-container {
+    max-width: 1000px;
+    margin: 100px auto 50px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.cart-item-details {
+    flex-grow: 1;
+    padding: 0 20px;
+}
+
+.cart-item-price {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.cart-item-quantity {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.quantity-input {
+    width: 40px;
+    height: 30px;
+    text-align: center;
+    margin: 0 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.remove-from-cart {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cart-summary {
+    margin-top: 30px;
+    text-align: right;
+}
+
+.cart-total {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Kirish sahifasi */
+.login-container {
+    max-width: 400px;
+    margin: 100px auto 50px;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+    text-align: center;
+    font-family: var(--font-main);
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: var(--font-secondary);
+}
+
+.otp-methods {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.otp-method {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.otp-method.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(200, 169, 126, 0.1);
+}
+
+/* Admin paneli */
+.admin-container {
+    margin: 80px auto 50px;
+    padding: 20px;
+    max-width: 1200px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-nav {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.admin-nav ul {
+    display: flex;
+    list-style: none;
+}
+
+.admin-nav ul li {
+    margin-right: 20px;
+}
+
+.admin-nav ul li a {
+    text-decoration: none;
+    color: var(--dark-color);
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.admin-nav ul li a.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.admin-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Mobil moslashuvchanlik */
+@media (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+    }
+    
+    nav ul {
+        margin-top: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    nav ul li {
+        margin: 5px 10px;
+    }
+    
+    .hero h1 {
+        font-size: 36px;
+    }
+    
+    .hero p {
+        font-size: 18px;
+    }
+    
+    .features .container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .feature {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .products-grid, .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    footer .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .cart-item-details {
+        padding: 15px 0;
+    }
+}
