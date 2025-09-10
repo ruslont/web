@@ -1,224 +1,249 @@
-// Savat funksiyalari
+// Asosiy JavaScript fayli
 document.addEventListener('DOMContentLoaded', function() {
-    updateCartCount();
+    // Savat funksiyalari
+    initializeCart();
     
-    // Savatga qo'shish tugmalari
-    const addToCartButtons = document.querySelectorAll('.add-to-cart');
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            addToCart(productId);
-        });
-    });
+    // Mahsulotlarni yuklash
+    loadProducts();
     
-    // Miqdorni o'zgartirish
-    const quantityButtons = document.querySelectorAll('.quantity-btn');
-    quantityButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('.quantity-input');
-            let quantity = parseInt(input.value);
-            
-            if (this.classList.contains('decrease')) {
-                if (quantity > 1) {
-                    input.value = quantity - 1;
-                    updateCartItem(this.closest('.cart-item').getAttribute('data-product-id'), input.value);
-                }
-            } else {
-                input.value = quantity + 1;
-                updateCartItem(this.closest('.cart-item').getAttribute('data-product-id'), input.value);
-            }
-        });
-    });
+    // Navbar funksiyalari
+    setupNavigation();
     
-    // Oʻchirish tugmalari
-    const removeButtons = document.querySelectorAll('.remove-from-cart');
-    removeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.closest('.cart-item').getAttribute('data-product-id');
-            removeFromCart(productId);
-        });
-    });
-    
-    // OTP usulini tanlash
-    const otpMethods = document.querySelectorAll('.otp-method');
-    otpMethods.forEach(method => {
-        method.addEventListener('click', function() {
-            otpMethods.forEach(m => m.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('otp-method').value = this.getAttribute('data-method');
-        });
-    });
+    // Forma validatsiyasi
+    setupFormValidation();
 });
 
-// Savatga mahsulot qo'shish
-function addToCart(productId) {
+// Savatni ishga tushirish
+function initializeCart() {
     let cart = getCart();
+    updateCartCount(cart);
     
-    if (cart[productId]) {
-        cart[productId].quantity += 1;
-    } else {
-        cart[productId] = {
-            quantity: 1,
-            added: new Date().getTime()
-        };
-    }
-    
-    saveCart(cart);
-    updateCartCount();
-    showNotification('Товар добавлен в корзину');
-}
-
-// Savatdan mahsulot olib tashlash
-function removeFromCart(productId) {
-    let cart = getCart();
-    delete cart[productId];
-    saveCart(cart);
-    updateCartCount();
-    
-    // UI yangilash
-    const cartItem = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
-    if (cartItem) {
-        cartItem.remove();
-        updateCartTotal();
-    }
-}
-
-// Savatdagi mahsulot miqdorini yangilash
-function updateCartItem(productId, quantity) {
-    let cart = getCart();
-    
-    if (cart[productId]) {
-        cart[productId].quantity = parseInt(quantity);
-        saveCart(cart);
-        updateCartTotal();
-    }
-}
-
-// Savatdagi jami summani hisoblash
-function updateCartTotal() {
-    // Bu funksiya server tomonidan yuklangan narxlardan foydalanishi kerak
-    // Hozircha demo versiya
-    let total = 0;
-    document.querySelectorAll('.cart-item').forEach(item => {
-        const price = parseFloat(item.getAttribute('data-price'));
-        const quantity = parseInt(item.querySelector('.quantity-input').value);
-        total += price * quantity;
-        
-        // Elementning jami narxini yangilash
-        const itemTotal = item.querySelector('.cart-item-total');
-        if (itemTotal) {
-            itemTotal.textContent = (price * quantity).toLocaleString('ru-RU') + ' руб.';
+    // Savatga qo'shish tugmalari
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-to-cart')) {
+            const productId = e.target.dataset.productId;
+            addToCart(productId);
         }
     });
     
-    document.querySelector('.cart-total').textContent = total.toLocaleString('ru-RU') + ' руб.';
+    // Miqdor tugmalari
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('quantity-btn')) {
+            const input = e.target.parentElement.querySelector('.quantity-input');
+            let quantity = parseInt(input.value);
+            
+            if (e.target.classList.contains('decrease') && quantity > 1) {
+                input.value = quantity - 1;
+            } else if (e.target.classList.contains('increase')) {
+                input.value = quantity + 1;
+            }
+            
+            // Yangilash
+            updateCartItem(e.target.closest('.cart-item').dataset.productId, input.value);
+        }
+    });
 }
 
-// Savatdagi mahsulotlar sonini yangilash
-function updateCartCount() {
-    const cart = getCart();
-    let totalCount = 0;
-    
-    for (const productId in cart) {
-        totalCount += cart[productId].quantity;
-    }
-    
-    document.getElementById('cart-count').textContent = totalCount;
-}
-
-// LocalStoragedan savatni olish
+// Savatdan olish
 function getCart() {
     const cartJSON = localStorage.getItem('elita_sham_cart');
     return cartJSON ? JSON.parse(cartJSON) : {};
 }
 
-// LocalStoragega savatni saqlash
+// Savatga saqlash
 function saveCart(cart) {
     localStorage.setItem('elita_sham_cart', JSON.stringify(cart));
 }
 
+// Savatga qo'shish
+function addToCart(productId, quantity = 1) {
+    let cart = getCart();
+    
+    if (cart[productId]) {
+        cart[productId].quantity += quantity;
+    } else {
+        cart[productId] = {
+            quantity: quantity,
+            added: Date.now()
+        };
+    }
+    
+    saveCart(cart);
+    updateCartCount(cart);
+    showNotification('Товар добавлен в корзину');
+    
+    // Animatsiya
+    const button = document.querySelector(`[data-product-id="${productId}"]`);
+    if (button) {
+        button.classList.add('adding');
+        setTimeout(() => button.classList.remove('adding'), 500);
+    }
+}
+
+// Savat sonini yangilash
+function updateCartCount(cart) {
+    let totalCount = 0;
+    for (const productId in cart) {
+        totalCount += cart[productId].quantity;
+    }
+    
+    const countElement = document.getElementById('cart-count');
+    if (countElement) {
+        countElement.textContent = totalCount;
+    }
+}
+
+// Mahsulotlarni yuklash
+async function loadProducts() {
+    try {
+        const response = await fetch('api/products.php');
+        const products = await response.json();
+        
+        if (products.length > 0) {
+            renderProducts(products);
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
+}
+
+// Mahsulotlarni chiqarish
+function renderProducts(products) {
+    const container = document.getElementById('products-container');
+    if (!container) return;
+    
+    container.innerHTML = products.map(product => `
+        <div class="product-card fade-in">
+            <img src="assets/images/${product.image}" alt="${product.name}">
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                <p class="price">${formatPrice(product.price)} руб.</p>
+                <div class="product-actions">
+                    <button class="btn add-to-cart" data-product-id="${product.id}">
+                        В корзину
+                    </button>
+                    <a href="product.php?id=${product.id}" class="btn btn-outline">
+                        Подробнее
+                    </a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Narxni formatlash
+function formatPrice(price) {
+    return new Intl.NumberFormat('ru-RU').format(price);
+}
+
 // Bildirishnoma ko'rsatish
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     // Soddalashtirilgan bildirishnoma
-    alert(message);
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#4caf50' : '#f44336'};
+        color: white;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-// OTP yuborish
-function sendOTP() {
-    const phone = document.getElementById('phone').value;
-    const method = document.getElementById('otp-method').value;
+// Navigation setup
+function setupNavigation() {
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
     
-    if (!phone) {
-        alert('Пожалуйста, введите номер телефона');
-        return;
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
     }
     
-    if (!method) {
-        alert('Пожалуйста, выберите способ получения кода');
-        return;
-    }
-    
-    // AJAX so'rov yuborish
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'send_otp.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function() {
-        if (this.status === 200) {
-            const response = JSON.parse(this.responseText);
-            if (response.success) {
-                document.getElementById('otp-section').style.display = 'block';
-                document.getElementById('otp-timer').textContent = '5:00';
-                startOTPTimer();
-            } else {
-                alert('Ошибка: ' + response.message);
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
-        }
-    };
-    xhr.send('phone=' + encodeURIComponent(phone) + '&method=' + encodeURIComponent(method));
+        });
+    });
 }
 
-// OTP tekshirish
-function verifyOTP() {
-    const otp = document.getElementById('otp').value;
+// Form validation
+function setupFormValidation() {
+    const forms = document.querySelectorAll('form[needs-validation]');
     
-    if (!otp) {
-        alert('Пожалуйста, введите код подтверждения');
-        return;
-    }
-    
-    // AJAX so'rov yuborish
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'verify_otp.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onload = function() {
-        if (this.status === 200) {
-            const response = JSON.parse(this.responseText);
-            if (response.success) {
-                window.location.href = 'checkout.php';
-            } else {
-                alert('Ошибка: ' + response.message);
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-        }
-    };
-    xhr.send('otp=' + encodeURIComponent(otp));
+            
+            this.classList.add('was-validated');
+        });
+    });
 }
 
-// OTP vaqt hisoblagichi
-function startOTPTimer() {
-    let timeLeft = 300; // 5 daqiqa
-    const timerElement = document.getElementById('otp-timer');
-    
-    const timerInterval = setInterval(function() {
-        timeLeft--;
+// API requests
+async function apiRequest(url, options = {}) {
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
         
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        
-        timerElement.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            alert('Время действия кода истекло. Пожалуйста, запросите новый код.');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    }, 1000);
+        
+        return await response.json();
+    } catch (error) {
+        console.error('API request failed:', error);
+        showNotification('Ошибка соединения', 'error');
+        throw error;
+    }
 }
+
+// Debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Format phone number
+function formatPhoneNumber(phone) {
+    return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+}
+
+// Keyingi fayllar uchun...

@@ -1,152 +1,132 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/database.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/functions.php';
 
-// Filtrlash parametrlari
-$category_id = isset($_GET['category']) ? intval($_GET['category']) : 0;
-$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$per_page = 12;
-$offset = ($page - 1) * $per_page;
+$page_title = "Каталог - " . SITE_NAME;
 
-// Ma'lumotlar bazasiga ulanish
-$db = new Database();
-$conn = $db->getConnection();
-
-// Kategoriyalarni olish
-$categories_query = "SELECT * FROM categories ORDER BY name";
-$categories_stmt = $conn->prepare($categories_query);
-$categories_stmt->execute();
-$categories = $categories_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Mahsulotlarni olish
-$where_conditions = ["p.in_stock > 0"];
-$params = [];
-
-if ($category_id > 0) {
-    $where_conditions[] = "p.category_id = :category_id";
-    $params[':category_id'] = $category_id;
+// Header ni include qilish
+$header_path = __DIR__ . '/includes/header.php';
+if (file_exists($header_path)) {
+    include $header_path;
+} else {
+    echo "<!DOCTYPE html><html><head><title>$page_title</title></head><body>";
+    echo "<header><div class='container'><h1>" . SITE_NAME . "</h1></div></header>";
+    echo "<main class='container'>";
 }
 
-$where_clause = count($where_conditions) > 0 ? "WHERE " . implode(" AND ", $where_conditions) : "";
+// Database ulanishi
+$db = getDBConnection();
+$products = [];
+$categories = [];
 
-// Jami mahsulotlar soni
-$count_query = "SELECT COUNT(*) as total FROM products p $where_clause";
-$count_stmt = $conn->prepare($count_query);
-foreach ($params as $key => $value) {
-    $count_stmt->bindValue($key, $value);
+if ($db) {
+    try {
+        // Filtr parametrlari
+        $category_id = isset($_GET['category']) ? intval($_GET['category']) : 0;
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $per_page = 12;
+        $offset = ($page - 1) * $per_page;
+        
+        // Kategoriyalarni olish
+        $categories_stmt = $db->query("SELECT * FROM categories ORDER BY name");
+        $categories = $categories_stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Mahsulotlarni olish
+        $where = "WHERE p.in_stock > 0";
+        $params = [];
+        
+        if ($category_id > 0) {
+            $where .= " AND p.category_id = :category_id";
+            $params[':category_id'] = $category_id;
+        }
+        
+        $products_query = "SELECT p.*, c.name as category_name 
+                          FROM products p 
+                          LEFT JOIN categories c ON p.category_id = c.id 
+                          $where 
+                          ORDER BY p.created_at DESC 
+                          LIMIT :limit OFFSET :offset";
+        
+        $stmt = $db->prepare($products_query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+    } catch (PDOException $e) {
+        displayError("Database xatosi", $e->getMessage());
+    }
+} else {
+    displayError("Database ulanmadi");
 }
-$count_stmt->execute();
-$total_products = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_products / $per_page);
-
-// Mahsulotlarni olish
-$products_query = "SELECT p.*, c.name as category_name 
-                   FROM products p 
-                   LEFT JOIN categories c ON p.category_id = c.id 
-                   $where_clause 
-                   ORDER BY p.created_at DESC 
-                   LIMIT :limit OFFSET :offset";
-
-$products_stmt = $conn->prepare($products_query);
-foreach ($params as $key => $value) {
-    $products_stmt->bindValue($key, $value);
-}
-$products_stmt->bindValue(':limit', $per_page, PDO::PARAM_INT);
-$products_stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$products_stmt->execute();
-$products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каталог - Elita Sham</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-    <?php include 'includes/header.php'; ?>
+<h1>Каталог свечей</h1>
 
-    <main class="catalog-page">
-        <div class="container">
-            <h1>Каталог свечей</h1>
-            
-            <div class="catalog-content">
-                <!-- Filtrlar paneli -->
-                <aside class="filters-sidebar">
-                    <h3>Категории</h3>
-                    <ul class="categories-list">
-                        <li class="<?php echo $category_id == 0 ? 'active' : ''; ?>">
-                            <a href="catalog.php">Все категории</a>
-                        </li>
-                        <?php foreach ($categories as $category): ?>
-                        <li class="<?php echo $category_id == $category['id'] ? 'active' : ''; ?>">
-                            <a href="catalog.php?category=<?php echo $category['id']; ?>">
-                                <?php echo $category['name']; ?>
-                            </a>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </aside>
+<div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
+    <!-- Sidebar -->
+    <aside>
+        <h3>Категории</h3>
+        <ul style="list-style: none; padding: 0;">
+            <li style="margin: 10px 0;">
+                <a href="<?php echo url('/catalog'); ?>" style="text-decoration: none; color: <?php echo $category_id == 0 ? 'var(--primary-color)' : 'var(--dark-color)'; ?>; font-weight: <?php echo $category_id == 0 ? 'bold' : 'normal'; ?>;">
+                    Все категории
+                </a>
+            </li>
+            <?php foreach ($categories as $category): ?>
+            <li style="margin: 10px 0;">
+                <a href="<?php echo url('/catalog?category=' . $category['id']); ?>" style="text-decoration: none; color: <?php echo $category_id == $category['id'] ? 'var(--primary-color)' : 'var(--dark-color)'; ?>; font-weight: <?php echo $category_id == $category['id'] ? 'bold' : 'normal'; ?>;">
+                    <?php echo htmlspecialchars($category['name']); ?>
+                </a>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+    </aside>
 
-                <!-- Mahsulotlar -->
-                <section class="products-section">
-                    <?php if (count($products) > 0): ?>
-                    <div class="products-grid">
-                        <?php foreach ($products as $product): ?>
-                        <div class="product-card">
-                            <img src="assets/images/<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>">
-                            <div class="product-info">
-                                <h3><?php echo $product['name']; ?></h3>
-                                <p class="product-category"><?php echo $product['category_name']; ?></p>
-                                <p class="product-description"><?php echo substr($product['description'], 0, 100); ?>...</p>
-                                <div class="product-meta">
-                                    <span class="burn-time">⏱ <?php echo $product['burn_time']; ?> часов</span>
-                                    <span class="wax-type">🕯 <?php echo $product['wax_type']; ?></span>
-                                </div>
-                                <div class="product-footer">
-                                    <p class="price"><?php echo number_format($product['price'], 0, ',', ' '); ?> руб.</p>
-                                    <button class="btn add-to-cart" data-product-id="<?php echo $product['id']; ?>">В корзину</button>
-                                    <a href="product.php?id=<?php echo $product['id']; ?>" class="btn btn-outline">Подробнее</a>
-                                </div>
-                            </div>
+    <!-- Mahsulotlar -->
+    <div>
+        <?php if (!empty($products)): ?>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                <?php foreach ($products as $product): ?>
+                    <div style="background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="height: 200px; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <?php echo displayImage($product['image'], $product['name'], "product-image"); ?>
                         </div>
-                        <?php endforeach; ?>
+                        <h3><?php echo htmlspecialchars($product['name']); ?></h3>
+                        <p style="color: #666; margin: 10px 0;"><?php echo htmlspecialchars($product['category_name']); ?></p>
+                        <p style="font-weight: bold; color: var(--primary-color); font-size: 1.2em; margin: 10px 0;">
+                            <?php echo formatPrice($product['price']); ?>
+                        </p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn add-to-cart" data-product-id="<?php echo $product['id']; ?>">
+                                В корзину
+                            </button>
+                            <a href="<?php echo url('/product?id=' . $product['id']); ?>" class="btn btn-outline">
+                                Подробнее
+                            </a>
+                        </div>
                     </div>
-
-                    <!-- Paginatsiya -->
-                    <?php if ($total_pages > 1): ?>
-                    <div class="pagination">
-                        <?php if ($page > 1): ?>
-                        <a href="catalog.php?category=<?php echo $category_id; ?>&page=<?php echo $page - 1; ?>" class="page-link">← Назад</a>
-                        <?php endif; ?>
-
-                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                        <a href="catalog.php?category=<?php echo $category_id; ?>&page=<?php echo $i; ?>" class="page-link <?php echo $i == $page ? 'active' : ''; ?>">
-                            <?php echo $i; ?>
-                        </a>
-                        <?php endfor; ?>
-
-                        <?php if ($page < $total_pages): ?>
-                        <a href="catalog.php?category=<?php echo $category_id; ?>&page=<?php echo $page + 1; ?>" class="page-link">Вперед →</a>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php else: ?>
-                    <div class="no-products">
-                        <h3>Товары не найдены</h3>
-                        <p>Попробуйте изменить параметры фильтрации</p>
-                    </div>
-                    <?php endif; ?>
-                </section>
+                <?php endforeach; ?>
             </div>
-        </div>
-    </main>
+        <?php else: ?>
+            <div style="text-align: center; padding: 50px;">
+                <h3>Товары не найдены</h3>
+                <p>В выбранной категории пока нет товаров</p>
+                <a href="<?php echo url('/catalog'); ?>" class="btn btn-primary">Вернуться в каталог</a>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
-    <?php include 'includes/footer.php'; ?>
-    <script src="assets/js/script.js"></script>
-</body>
-</html>
+<?php
+// Footer ni include qilish
+$footer_path = __DIR__ . '/includes/footer.php';
+if (file_exists($footer_path)) {
+    include $footer_path;
+} else {
+    echo "</main></body></html>";
+}
+?>
