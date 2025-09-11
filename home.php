@@ -408,80 +408,8 @@ function getCartCount() {
         </div>
     </footer>
 
-    <script>
-    // Savat funksiyalari
-    document.addEventListener('DOMContentLoaded', function() {
-        // Savatga qo'shish
-        const addToCartButtons = document.querySelectorAll('.add-to-cart');
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const productId = this.getAttribute('data-product-id');
-                addToCart(productId);
-            });
-        });
+    
+<link rel="stylesheet" href="<?php echo url('assets/css/style.css'); ?>">
 
-        // Savatni yangilash
-        updateCartCount();
-    });
-
-    // Savatga mahsulot qo'shish
-    function addToCart(productId) {
-           // Session-based cart
-        if (typeof <?php echo isset($_SESSION['cart']) ? json_encode($_SESSION['cart']) : '{}'; ?> === 'object') {
-            <?php
-            if (!isset($_SESSION['cart'])) {
-                $_SESSION['cart'] = [];
-            }
-            ?>
-        }
-
-        // AJAX orqali serverga so'rov
-        fetch('<?php echo url('/add-to-cart'); ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ product_id: productId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Savat sonini yangilash
-                updateCartCount();
-                
-                // Bildirishnoma
-                alert('Товар добавлен в корзину!');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Fallback: faqat frontend-da yangilash
-            let cart = JSON.parse(localStorage.getItem('elita_sham_cart') || '{}');
-            cart[productId] = (cart[productId] || 0) + 1;
-            localStorage.setItem('elita_sham_cart', JSON.stringify(cart));
-            updateCartCount();
-            alert('Товар добавлен в корзину!');
-        });
-    }
-
-    // Savat sonini yangilash
-    function updateCartCount() {
-        // Server cart sonini olish
-        fetch('<?php echo url('/get-cart-count'); ?>')
-        .then(response => response.json())
-        .then(data => {
-            if (data.count !== undefined) {
-                document.getElementById('cart-count').textContent = data.count;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Fallback: local storage dan olish
-            let cart = JSON.parse(localStorage.getItem('elita_sham_cart') || '{}');
-            let total = Object.values(cart).reduce((sum, count) => sum + count, 0);
-            document.getElementById('cart-count').textContent = total;
-        });
-    }
-    </script>
 </body>
 </html>
